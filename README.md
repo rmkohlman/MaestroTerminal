@@ -1,127 +1,65 @@
-# MaestroTerminal
+# MaestroTerminal - Terminal Configuration Manager
 
-Terminal configuration management library for the [DevOpsMaestro](https://github.com/rmkohlman/devopsmaestro) ecosystem.
+Terminal configuration management via the `dvt` CLI, part of the [DevOpsMaestro](https://github.com/rmkohlman/devopsmaestro) toolkit.
 
 ## Overview
 
-MaestroTerminal provides a Go library for managing terminal environment configurations as portable YAML resources. It covers the full terminal stack: shell prompts (Starship), shell plugins (zsh), terminal emulators (WezTerm, Alacritty, iTerm2, Kitty), shell profiles, and terminal packages.
+`dvt` manages your entire terminal environment as declarative YAML resources. It covers every layer of the terminal stack: shell prompts (Starship, Powerlevel10k, Oh-My-Posh), shell plugins (zsh), shell configurations, terminal profiles, terminal emulators (WezTerm, Alacritty, Kitty, iTerm2), and terminal packages.
 
-Key capabilities:
+MaestroTerminal is the extracted Go module providing the code behind `dvt`. Users interact with the `dvt` CLI directly -- not with this library.
 
-- **Prompt management** — Define and generate Starship prompt configurations with theme-aware color variables
-- **Prompt composition** — Compose modular powerline-style prompts from styles and extensions
-- **Plugin management** — Manage zsh plugins across zinit, oh-my-zsh, antigen, sheldon, and manual managers
-- **Shell configuration** — Define aliases, environment variables, functions, keybindings, and history settings
-- **Profile generation** — Aggregate prompt, plugins, and shell config into complete, ready-to-use config files
-- **Terminal emulator config** — Model and parse emulator configurations for WezTerm, Alacritty, iTerm2, and Kitty
-- **WezTerm Lua generation** — Generate WezTerm `wezterm.lua` from YAML definitions using Go templates
-- **Package bundles** — Bundle prompt, plugin, emulator, and shell settings into reusable terminal packages
-- **Built-in libraries** — Embedded curated libraries of prompts, plugins, styles, extensions, emulator configs, and WezTerm presets
+## Key Features
 
-## Installation
+- **Prompt management** - Define and generate Starship, Powerlevel10k, and Oh-My-Posh configurations from YAML
+- **Theme-aware colors** - Use `${theme.color}` variables in prompt styles that resolve against the active palette
+- **Shell plugin management** - Manage zsh plugins across zinit, oh-my-zsh, antigen, sheldon, and manual managers
+- **Shell configuration** - Define aliases, environment variables, functions, keybindings, and history settings
+- **Terminal profiles** - Aggregate prompt, plugins, and shell config into complete, ready-to-use config files
+- **Terminal emulators** - Model and apply configurations for WezTerm, Alacritty, Kitty, and iTerm2
+- **WezTerm Lua generation** - Generate `wezterm.lua` from YAML definitions using built-in presets
+- **Terminal packages** - Bundle prompt, plugin, emulator, and shell settings into reusable packages
+- **Built-in libraries** - Curated libraries of prompts, plugins, emulator configs, and WezTerm presets
+
+## Quick Install
 
 ```bash
-go get github.com/rmkohlman/MaestroTerminal
+brew tap rmkohlman/tap
+brew install devopsmaestro
+dvt version
 ```
+
+The `devopsmaestro` Homebrew package includes `dvm`, `nvp`, and `dvt`.
 
 ## Quick Start
 
-### Generate a complete terminal profile
+```bash
+# Initialize dvt config directory
+dvt init
 
-```go
-import (
-    "github.com/rmkohlman/MaestroTerminal/terminalops"
-    "github.com/rmkohlman/MaestroTerminal/terminalops/profile"
-)
+# Browse the built-in prompt library
+dvt prompt library list
 
-// Create manager (uses ~/.dvt as config dir)
-mgr, err := terminalops.New()
-if err != nil {
-    log.Fatal(err)
-}
+# Install a prompt from the library
+dvt prompt library install starship-minimal
 
-// Install the default preset (populates ~/.dvt with prompts, plugins, shells, profiles)
-if err := mgr.InstallPreset("default"); err != nil {
-    log.Fatal(err)
-}
+# Generate starship.toml for a prompt
+dvt prompt generate starship-minimal
 
-// Generate config files for a profile
-p, err := mgr.ProfileStore().Get("default")
-if err != nil {
-    log.Fatal(err)
-}
-if err := mgr.GenerateProfileToDir(p, "~/.config/terminal"); err != nil {
-    log.Fatal(err)
-}
-// Writes ~/.config/terminal/starship.toml and ~/.config/terminal/.zshrc.dvt
+# Set a prompt as active
+dvt prompt set starship-minimal
+
+# Apply a WezTerm preset
+dvt wezterm apply minimal
 ```
-
-### Build a Starship prompt config directly
-
-```go
-import (
-    "github.com/rmkohlman/MaestroTerminal/terminalops/prompt"
-)
-
-p := prompt.NewTerminalPrompt("my-prompt")
-p.Prompt.Format = "$directory$git_branch$character"
-p.Prompt.Modules = map[string]prompt.ModuleConfig{
-    "directory": {Format: "[$path]($style) ", Style: "${theme.primary}"},
-    "git_branch": {Symbol: " ", Format: "[$symbol$branch]($style) ", Style: "${theme.accent}"},
-}
-
-gen := prompt.NewStarshipGenerator()
-toml, err := gen.Generate(p.Prompt)
-```
-
-### Compose a modular powerline prompt
-
-```go
-import (
-    "github.com/rmkohlman/MaestroTerminal/terminalops/prompt/composer"
-    "github.com/rmkohlman/MaestroTerminal/terminalops/prompt/style"
-    "github.com/rmkohlman/MaestroTerminal/terminalops/prompt/extension"
-)
-
-styleLib := style.NewLibrary()
-extLib := extension.NewLibrary()
-
-promptStyle, _ := styleLib.Get("powerline")
-ext, _ := extLib.Get("git")
-
-c := composer.NewStarshipComposer()
-composed, err := c.Compose(promptStyle, []*extension.PromptExtension{ext})
-```
-
-## Package Overview
-
-| Package | Import Path | Description |
-|---------|-------------|-------------|
-| `terminalops` | `github.com/rmkohlman/MaestroTerminal/terminalops` | Root manager orchestrating all operations |
-| `terminalops/prompt` | `.../terminalops/prompt` | Starship prompt types, parsing, and generation |
-| `terminalops/prompt/style` | `.../terminalops/prompt/style` | Modular prompt style definitions |
-| `terminalops/prompt/extension` | `.../terminalops/prompt/extension` | Prompt segment extensions |
-| `terminalops/prompt/composer` | `.../terminalops/prompt/composer` | Powerline prompt composition |
-| `terminalops/plugin` | `.../terminalops/plugin` | zsh plugin types, generation, and library |
-| `terminalops/shell` | `.../terminalops/shell` | Shell config types and generation |
-| `terminalops/profile` | `.../terminalops/profile` | Complete terminal profile generation |
-| `terminalops/package` | `.../terminalops/package` | Terminal package bundles |
-| `terminalops/emulator` | `.../terminalops/emulator` | Terminal emulator config types |
-| `terminalops/wezterm` | `.../terminalops/wezterm` | WezTerm Lua config generation |
-
-## Dependencies
-
-- [MaestroSDK](https://github.com/rmkohlman/MaestroSDK) — shared paths and resource utilities
-- [MaestroPalette](https://github.com/rmkohlman/MaestroPalette) — color palette primitives for prompt theme resolution
 
 ## Documentation
 
-For comprehensive documentation, see the [MaestroTerminal Documentation](https://rmkohlman.github.io/MaestroTerminal/).
+Full documentation is available at the [MaestroTerminal Documentation](https://rmkohlman.github.io/MaestroTerminal/).
+
+## Part of the DevOpsMaestro Ecosystem
+
+`dvt` is part of the [DevOpsMaestro](https://github.com/rmkohlman/devopsmaestro) toolkit alongside `dvm` (workspace management) and `nvp` (Neovim plugin manager).
 
 ## License
 
 GPL-3.0 with commercial dual-license. See [LICENSE](LICENSE) for details.
-
-## Part of the DevOpsMaestro Ecosystem
-
-MaestroTerminal is part of the [DevOpsMaestro](https://github.com/rmkohlman/devopsmaestro) toolkit — a kubectl-style CLI for managing containerized development environments.

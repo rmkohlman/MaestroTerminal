@@ -1,6 +1,6 @@
 site_name: MaestroTerminal
 site_url: https://rmkohlman.github.io/MaestroTerminal/
-site_description: Terminal configuration management library for the DevOpsMaestro ecosystem
+site_description: Terminal configuration management via the dvt CLI, part of the DevOpsMaestro toolkit
 site_author: Robert Kohlman
 repo_name: rmkohlman/MaestroTerminal
 repo_url: https://github.com/rmkohlman/MaestroTerminal
@@ -66,15 +66,22 @@ extra:
 
 nav:
   - Home: index.md
-  - Manager: manager.md
-  - Emulators: emulators.md
-  - Packages: packages.md
-  - Plugins: plugins.md
-  - Prompts: prompts.md
-  - Prompt Styles: prompt-styles.md
-  - Prompt Extensions: prompt-extensions.md
-  - Prompt Composer: prompt-composer.md
-  - Profiles: profiles.md
-  - Shell: shell.md
-  - WezTerm: wezterm.md
-  - API Reference: api-reference.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - Prompts:
+    - Overview: prompts/overview.md
+    - Prompt Library: prompts/library.md
+    - Theme Integration: prompts/theme-integration.md
+  - Shell:
+    - Shell Plugins: shell/plugins.md
+    - Shell Configuration: shell/configuration.md
+  - Terminal:
+    - Profiles: terminal/profiles.md
+    - Emulators: terminal/emulators.md
+    - WezTerm: terminal/wezterm.md
+    - Packages: terminal/packages.md
+  - Commands Reference: commands.md
+  - YAML Reference:
+    - TerminalPrompt: reference/terminal-prompt.md
+    - TerminalPackage: reference/terminal-package.md
