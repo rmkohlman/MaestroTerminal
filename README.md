@@ -6,8 +6,6 @@ Terminal configuration management via the `dvt` CLI, part of the [DevOpsMaestro]
 
 `dvt` manages your entire terminal environment as declarative YAML resources. It covers every layer of the terminal stack: shell prompts (Starship, Powerlevel10k, Oh-My-Posh), shell plugins (zsh), shell configurations, terminal profiles, terminal emulators (WezTerm, Alacritty, Kitty, iTerm2), and terminal packages.
 
-MaestroTerminal is the extracted Go module providing the code behind `dvt`. Users interact with the `dvt` CLI directly -- not with this library.
-
 ## Key Features
 
 - **Prompt management** - Define and generate Starship, Powerlevel10k, and Oh-My-Posh configurations from YAML
