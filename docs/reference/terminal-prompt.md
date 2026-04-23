@@ -255,13 +255,20 @@ dvt prompt apply -f https://configs.example.com/prompt.yaml
 # Generate starship.toml from prompt
 dvt prompt generate my-starship-prompt
 
-# Set as active prompt
+# Persist as the active prompt (writes ~/.config/dvm/.active-prompt)
 dvt prompt set my-starship-prompt
+
+# Check which prompt is currently active
+dvt prompt show          # aliases: dvt prompt current, dvt prompt active
+
+# Apply the config to your shell (separate step)
+dvt prompt generate my-starship-prompt > ~/.config/starship.toml
 ```
 
 ### Delete Prompts
 
 ```bash
+# Deletes the prompt; clears the active marker if it was the active prompt
 dvt prompt delete my-starship-prompt
 ```
 
@@ -391,6 +398,7 @@ TerminalPrompts are stored in the database and linked to workspaces:
 - **Database table**: `terminal_prompts`
 - **Workspace relationship**: Set via `spec.terminal.prompt` in a Workspace YAML
 - **Qualified naming**: Prompts are workspace-qualified (`app/workspace/prompt-name`)
+- **Active prompt marker**: `~/.config/dvm/.active-prompt` — plain-text file containing the active prompt name, written by `dvt prompt set` and cleared by `dvt prompt delete` when the deleted prompt was active. Read by `dvt prompt show`. Mirrors the `.active-profile` pattern used by profiles.
 
 ## Related Resources
 

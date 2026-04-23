@@ -277,7 +277,7 @@ cat my-prompt.yaml | dvt prompt apply -f -
 
 ### dvt prompt delete
 
-Delete a prompt from the database (kubectl-style). Prompts for confirmation unless `--force` is used.
+Delete a prompt from the database (kubectl-style). Prompts for confirmation unless `--force` is used. If the deleted prompt is currently active, the active marker (`~/.config/dvm/.active-prompt`) is automatically cleared.
 
 **Usage:**
 
@@ -327,7 +327,10 @@ dvt prompt generate coolnight > ~/.config/starship.toml
 
 ### dvt prompt set
 
-Mark a prompt as active and validate that its config can be generated. Requires confirmation unless `--force` is used. After setting, run `dvt prompt generate <name>` to write the config file.
+Persist a prompt as the active prompt by writing its name to `~/.config/dvm/.active-prompt`. Validates that the prompt exists in the database and that its config can be generated; mirrors DB-only prompts into the local file store on demand. Requires confirmation unless `--force` is used.
+
+!!! note
+    `dvt prompt set` does **not** write `~/.config/starship.toml`. After setting the active prompt, run `dvt prompt generate <name> > ~/.config/starship.toml` to apply it to your shell.
 
 **Usage:**
 
@@ -350,8 +353,35 @@ dvt prompt set coolnight
 # Set without confirmation
 dvt prompt set coolnight --force
 
-# Then generate the config file
+# Check what is now active
+dvt prompt show
+
+# Apply the config to your shell
 dvt prompt generate coolnight > ~/.config/starship.toml
+```
+
+---
+
+### dvt prompt show
+
+Print the name of the currently active prompt to stdout. Reads from `~/.config/dvm/.active-prompt`. Exits with status 1 if no active prompt has been set.
+
+**Usage:**
+
+```
+dvt prompt show
+```
+
+**Aliases:** `dvt prompt current`, `dvt prompt active`
+
+**Examples:**
+
+```bash
+# Print the active prompt name
+dvt prompt show
+
+# Use in a script
+ACTIVE=$(dvt prompt show) && dvt prompt generate "$ACTIVE" > ~/.config/starship.toml
 ```
 
 ---

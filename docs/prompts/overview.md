@@ -55,8 +55,11 @@ dvt prompt apply -f starship-prompt.yaml
 # Generate starship.toml configuration file
 dvt prompt generate my-starship
 
-# Set as active prompt
+# Persist as the active prompt
 dvt prompt set my-starship
+
+# Apply the config to your shell
+dvt prompt generate my-starship > ~/.config/starship.toml
 ```
 
 ## Theme Integration
@@ -257,8 +260,14 @@ dvt prompt apply -f github:rmkohlman/dvm-config/prompts/starship.yaml
 # Generate configuration file (starship.toml)
 dvt prompt generate my-starship
 
-# Set as active prompt for current workspace
+# Persist as the active prompt (writes ~/.config/dvm/.active-prompt)
 dvt prompt set my-starship
+
+# Check which prompt is active
+dvt prompt show
+
+# Apply the config to your shell (separate step)
+dvt prompt generate my-starship > ~/.config/starship.toml
 ```
 
 ### Delete Prompts
