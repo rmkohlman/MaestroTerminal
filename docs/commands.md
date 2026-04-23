@@ -327,7 +327,7 @@ dvt prompt generate coolnight > ~/.config/starship.toml
 
 ### dvt prompt set
 
-Set the active prompt and validate its config (kubectl-style). Requires confirmation unless `--force` is used.
+Mark a prompt as active and validate that its config can be generated. Requires confirmation unless `--force` is used. After setting, run `dvt prompt generate <name>` to write the config file.
 
 **Usage:**
 
@@ -344,11 +344,14 @@ dvt prompt set <name> [--force]
 **Examples:**
 
 ```bash
-# Set a prompt as active
+# Set a prompt as active (with confirmation)
 dvt prompt set coolnight
 
 # Set without confirmation
 dvt prompt set coolnight --force
+
+# Then generate the config file
+dvt prompt generate coolnight > ~/.config/starship.toml
 ```
 
 ---
