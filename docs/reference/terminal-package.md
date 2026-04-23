@@ -1,8 +1,9 @@
 # TerminalPackage YAML Reference
 
-`TerminalPackage` bundles a prompt, plugins, emulator settings, and theme preferences into a single installable resource. Packages support single inheritance via the `extends` field.
+**Kind:** `TerminalPackage`  
+**APIVersion:** `devopsmaestro.io/v1`
 
----
+A TerminalPackage is a named, reusable collection of terminal configuration. It bundles together shell plugins, prompt configurations, and terminal profiles into a single unit that can be referenced by a Workspace. Packages support single inheritance via `spec.extends` so a base package can be shared and specialized.
 
 ## Full Example
 
@@ -10,79 +11,42 @@
 apiVersion: devopsmaestro.io/v1
 kind: TerminalPackage
 metadata:
-  name: developer                              # Unique name (required)
-  description: Developer-focused terminal package
-  category: work                               # Category for filtering
-  tags:                                        # Optional tags
-    - dev
-    - git
+  name: dev-essentials
+  description: "Full developer terminal setup with productivity plugins"
+  category: development
+  tags:
+    - zsh
+    - starship
     - productivity
+  labels:
+    team: platform
+    env: dev
+  annotations:
+    maintainer: platform-team
 spec:
-  extends: core                                # Inherit from another package
-  plugins:                                     # Plugin names to include
+  extends: core
+  plugins:
     - zsh-autosuggestions
     - zsh-syntax-highlighting
-    - fzf
-    - zsh-z
-  prompts:                                     # Prompt names to include
-    - starship-powerline
-  profiles:                                    # Profile names to include
-    - developer-profile
-  promptStyle: powerline                       # Prompt style name
-  promptExtensions:                            # Prompt extension names
-    - git
-    - directory
-    - time
-    - node
-  theme: catppuccin-mocha                      # Theme name
-  wezterm:                                     # WezTerm-specific overrides
+    - fzf-tab
+  prompts:
+    - starship-minimal
+  profiles:
+    - developer
+  promptStyle: powerline-segments
+  promptExtensions:
+    - git-status
+    - node-version
+  wezterm:
     fontSize: 14
-    colorScheme: "Catppuccin Mocha"
-    fontFamily: "MesloLGS Nerd Font Mono"
+    colorScheme: "coolnight-ocean"
+    fontFamily: "JetBrains Mono"
+  enabled: true
 ```
 
----
-
-## Field Reference
-
-### metadata fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Unique identifier for this package |
-| `description` | string | No | Human-readable description |
-| `category` | string | No | Category for filtering (`dvt package list -c`) |
-| `tags` | list | No | Arbitrary tags for filtering |
-
-### spec fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `extends` | string | No | Name of another package to inherit from (single inheritance) |
-| `plugins` | list | No | Names of `TerminalPlugin` resources to include |
-| `prompts` | list | No | Names of `TerminalPrompt` resources to include |
-| `profiles` | list | No | Names of `TerminalProfile` resources to include |
-| `promptStyle` | string | No | Name of a prompt style to apply |
-| `promptExtensions` | list | No | Names of prompt extensions to apply |
-| `theme` | string | No | Theme name to associate with this package |
-| `wezterm` | object | No | WezTerm-specific configuration overrides |
-
-### wezterm object fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `fontSize` | int | WezTerm font size in points |
-| `colorScheme` | string | WezTerm color scheme name |
-| `fontFamily` | string | WezTerm font family name |
-
----
-
-## Inheritance with extends
-
-A package can extend one other package, inheriting its plugins, prompts, profiles, and theme. Child fields override inherited values.
+## Minimal Example
 
 ```yaml
-# Base package
 apiVersion: devopsmaestro.io/v1
 kind: TerminalPackage
 metadata:
@@ -90,124 +54,320 @@ metadata:
 spec:
   plugins:
     - zsh-autosuggestions
+```
+
+## Field Reference
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `apiVersion` | string | ✅ | Must be `devopsmaestro.io/v1` |
+| `kind` | string | ✅ | Must be `TerminalPackage` |
+| `metadata.name` | string | ✅ | Unique package name |
+| `metadata.description` | string | ❌ | Human-readable description |
+| `metadata.category` | string | ❌ | Package category for organization |
+| `metadata.tags` | array | ❌ | List of string tags |
+| `metadata.labels` | object | ❌ | Key-value labels |
+| `metadata.annotations` | object | ❌ | Key-value annotations |
+| `spec.extends` | string | ❌ | Name of a parent TerminalPackage to inherit from |
+| `spec.plugins` | array or string | ❌ | List of TerminalPlugin names to include |
+| `spec.prompts` | array or string | ❌ | List of TerminalPrompt names to include |
+| `spec.profiles` | array or string | ❌ | List of terminal profile preset names to include |
+| `spec.promptStyle` | string | ❌ | Modular prompt style name (e.g., `powerline-segments`) |
+| `spec.promptExtensions` | array or string | ❌ | Modular prompt extension names |
+| `spec.wezterm` | object | ❌ | Embedded WezTerm configuration |
+| `spec.wezterm.fontSize` | integer | ❌ | Font size in points |
+| `spec.wezterm.colorScheme` | string | ❌ | WezTerm color scheme name |
+| `spec.wezterm.fontFamily` | string | ❌ | Font family name |
+| `spec.enabled` | boolean | ❌ | Whether the package is active (default: `true`) |
+
+## Field Details
+
+### metadata.name (required)
+
+The unique identifier for this package. Used when referencing the package from a Workspace or another TerminalPackage's `spec.extends`.
+
+**Examples:**
+- `core`
+- `dev-essentials`
+- `minimal-shell`
+- `platform-defaults`
+
+### metadata.category (optional)
+
+Category for organization and filtering.
+
+**Common values:**
+- `development` — Full developer setup
+- `minimal` — Lightweight base configurations
+- `ops` — Operations and infrastructure tooling
+- `personal` — User-specific customizations
+
+### metadata.tags (optional)
+
+A list of string tags for filtering and discovery. Tags are stored as a comma-separated value internally.
+
+```yaml
+metadata:
+  tags:
+    - zsh
+    - starship
+    - productivity
+```
+
+### spec.extends (optional)
+
+The name of a parent TerminalPackage. The current package inherits all plugins, prompts, and profiles from the parent. A package cannot extend itself.
+
+```yaml
+spec:
+  extends: core
+```
+
+!!! note "Single Inheritance"
+    Only one level of inheritance is supported. `spec.extends` takes a single package name string.
+
+### spec.plugins (optional)
+
+A list of TerminalPlugin names to include in this package. Each entry must match the `metadata.name` of an existing `TerminalPlugin` resource. Accepts a single string or a YAML list.
+
+```yaml
+spec:
+  plugins:
+    - zsh-autosuggestions
     - zsh-syntax-highlighting
+    - fzf-tab
+```
+
+Single-plugin shorthand:
+
+```yaml
+spec:
+  plugins: zsh-autosuggestions
+```
+
+### spec.prompts (optional)
+
+A list of TerminalPrompt names to include. Each entry must match the `metadata.name` of an existing `TerminalPrompt` resource. Accepts a single string or a YAML list.
+
+```yaml
+spec:
   prompts:
     - starship-minimal
-  theme: catppuccin-latte
+    - p10k-lean
+```
 
----
-# Derived package
-apiVersion: devopsmaestro.io/v1
-kind: TerminalPackage
-metadata:
-  name: developer
+### spec.profiles (optional)
+
+A list of terminal profile preset names to include. These represent terminal emulator profile configurations (e.g., WezTerm tabs/domains). Accepts a single string or a YAML list.
+
+```yaml
 spec:
-  extends: core                 # Inherits plugins and prompts from core
-  plugins:
-    - fzf                       # Added on top of core's plugins
-    - zsh-z
-  prompts:
-    - starship-powerline        # Overrides core's starship-minimal
-  theme: catppuccin-mocha       # Overrides core's theme
+  profiles:
+    - developer
+    - dark-mode
 ```
 
----
+### spec.promptStyle (optional)
 
-## String or List Shorthand
-
-Plugin, prompt, profile, and extension fields accept either a single string or a list:
+The name of a modular prompt style. Used with the modular prompt system (v0.19.0+) to configure prompt segment layout independently of a named TerminalPrompt resource.
 
 ```yaml
-# Single string
-plugins: zsh-autosuggestions
-
-# List
-plugins:
-  - zsh-autosuggestions
-  - fzf
+spec:
+  promptStyle: powerline-segments
 ```
 
----
+### spec.promptExtensions (optional)
 
-## Usage Examples
+A list of modular prompt extension names. Extensions add segments (e.g., git status, node version) to the prompt defined by `spec.promptStyle`. Accepts a single string or a YAML list.
 
-### Minimal package
+```yaml
+spec:
+  promptStyle: powerline-segments
+  promptExtensions:
+    - git-status
+    - node-version
+    - python-env
+```
+
+!!! info "Modular Prompt System"
+    `spec.promptStyle` and `spec.promptExtensions` work together. A package uses the modular prompt system when both fields are non-empty. See [Terminal Prompt](terminal-prompt.md) for named prompt resources.
+
+### spec.wezterm (optional)
+
+Inline WezTerm configuration embedded directly in the package. Use this for package-specific terminal appearance overrides without a separate WezTermConfig resource.
+
+```yaml
+spec:
+  wezterm:
+    fontSize: 14
+    colorScheme: "coolnight-ocean"
+    fontFamily: "JetBrains Mono"
+```
+
+| Sub-field | Type | Description |
+|-----------|------|-------------|
+| `fontSize` | integer | Font size in points |
+| `colorScheme` | string | WezTerm color scheme name |
+| `fontFamily` | string | Font family name string |
+
+### spec.enabled (optional)
+
+Controls whether this package is active. Defaults to `true`. Set to `false` to deactivate the package without deleting it. Only written to YAML when `false` to keep output clean.
+
+```yaml
+spec:
+  enabled: false
+```
+
+## Examples
+
+### Base Package (no inheritance)
 
 ```yaml
 apiVersion: devopsmaestro.io/v1
 kind: TerminalPackage
 metadata:
-  name: minimal
-  description: Minimal terminal setup
+  name: core
+  description: "Minimal base configuration shared by all profiles"
   category: minimal
 spec:
   plugins:
     - zsh-autosuggestions
+    - zsh-syntax-highlighting
   prompts:
     - starship-minimal
 ```
 
-### Full developer package with WezTerm
+### Inherited Package
 
 ```yaml
 apiVersion: devopsmaestro.io/v1
 kind: TerminalPackage
 metadata:
-  name: full-dev
-  description: Complete developer terminal with WezTerm
-  category: developer
+  name: dev-essentials
+  description: "Developer setup extending core"
+  category: development
   tags:
-    - dev
-    - wezterm
-    - git
+    - zsh
+    - fzf
 spec:
   extends: core
   plugins:
-    - zsh-autosuggestions
-    - zsh-syntax-highlighting
-    - fzf
-    - zsh-z
-    - zsh-completions
-  prompts:
-    - starship-powerline
+    - fzf-tab
+    - zoxide
+  profiles:
+    - developer
+```
+
+### Package with Modular Prompt
+
+```yaml
+apiVersion: devopsmaestro.io/v1
+kind: TerminalPackage
+metadata:
+  name: powerline-dev
+  description: "Dev setup with powerline-style segments"
+spec:
+  extends: core
+  promptStyle: powerline-segments
   promptExtensions:
-    - git
-    - directory
-    - node
-    - rust
-  theme: catppuccin-mocha
+    - git-status
+    - node-version
+    - python-env
+```
+
+### Package with WezTerm Config
+
+```yaml
+apiVersion: devopsmaestro.io/v1
+kind: TerminalPackage
+metadata:
+  name: dark-theme-setup
+  description: "Full dark theme terminal experience"
+  category: personal
+spec:
+  extends: dev-essentials
   wezterm:
     fontSize: 13
-    colorScheme: "Catppuccin Mocha"
-    fontFamily: "JetBrains Mono Nerd Font"
+    colorScheme: "coolnight-ocean"
+    fontFamily: "JetBrains Mono"
 ```
 
-### Install and use a package
+### Disabled Package
+
+```yaml
+apiVersion: devopsmaestro.io/v1
+kind: TerminalPackage
+metadata:
+  name: experimental
+  description: "Work-in-progress, not active"
+spec:
+  plugins:
+    - some-new-plugin
+  enabled: false
+```
+
+## CLI Commands
+
+### Apply a Package
 
 ```bash
-# Install from the built-in library
-dvt package install developer
+# Apply from file
+dvm apply -f package.yaml
 
-# Or apply a custom package from YAML (via emulator/profile apply commands)
-# Then list to confirm
-dvt package list
-dvt package get developer -o yaml
+# Apply from URL
+dvm apply -f https://configs.example.com/terminal-package.yaml
 ```
 
----
+### List Packages
 
-## Built-in Library Packages
+```bash
+# List all terminal packages
+dvm get terminal packages
 
-| Name | Extends | Description |
-|------|---------|-------------|
-| `core` | (none) | Base package with essential plugins and minimal prompt |
-| `developer` | `core` | Developer-focused with git tools and powerline prompt |
-| `maestro` | `developer` | Full DevOpsMaestro setup with workspace context prompt |
+# Output as YAML
+dvm get terminal packages -o yaml
+```
 
----
+### Get Package Details
 
-## Related
+```bash
+# Get a specific package
+dvm get terminal package dev-essentials
 
-- [Terminal Packages](../terminal/packages.md) - Package management commands
-- [Terminal Profiles](../terminal/profiles.md) - Profile resources
-- [TerminalPrompt YAML Reference](terminal-prompt.md) - Prompt resource schema
+# Export as YAML
+dvm get terminal package dev-essentials -o yaml
+```
+
+### Delete a Package
+
+```bash
+dvm delete terminal package dev-essentials
+```
+
+## Validation Rules
+
+- `metadata.name` is required and must be non-empty
+- `spec.extends` must not reference the package itself (no self-inheritance)
+- All plugin names in `spec.plugins` must be non-empty strings
+- All prompt names in `spec.prompts` must be non-empty strings
+- All profile names in `spec.profiles` must be non-empty strings
+- `spec.enabled` defaults to `true` when not specified
+- `apiVersion`, if provided, must be `devopsmaestro.io/v1`
+- `kind`, if provided, must be `TerminalPackage`
+
+## Storage
+
+TerminalPackages are stored in the database and referenced by Workspaces:
+
+- **Database table**: `terminal_packages`
+- **Plugin relationship**: Plugin names reference `terminal_plugins.name`
+- **Prompt relationship**: Prompt names reference `terminal_prompts.name`
+- **Workspace relationship**: Referenced by name in `Workspace.spec.terminal.package`
+
+## Related Resources
+
+- [TerminalPlugin](terminal-plugin.md) — Shell plugins referenced via `spec.plugins[]`
+- [TerminalPrompt](terminal-prompt.md) — Prompt configurations referenced via `spec.prompts[]`
+- [WeztermConfig](wezterm-config.md) — Standalone WezTerm configuration resource
+- [Workspace](https://rmkohlman.github.io/devopsmaestro/reference/workspace/) — References terminal packages via `spec.terminal.package`

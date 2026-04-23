@@ -85,3 +85,5 @@ nav:
   - YAML Reference:
     - TerminalPrompt: reference/terminal-prompt.md
     - TerminalPackage: reference/terminal-package.md
+    - TerminalPlugin: reference/terminal-plugin.md
+    - WeztermConfig: reference/wezterm-config.md

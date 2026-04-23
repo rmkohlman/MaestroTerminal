@@ -1,101 +1,175 @@
-# WezTerm
+# WezTerm Integration
 
-`dvt` provides first-class WezTerm support with a dedicated `dvt wezterm` subcommand. It generates `wezterm.lua` from declarative YAML definitions using built-in presets and automatic theme color integration.
+DevOpsMaestro supports generating WezTerm configuration files that integrate with your Neovim theme system through the new `dvt` (DevOps Terminal) command suite.
 
 ---
 
 ## Overview
 
-WezTerm uses a Lua configuration file (`wezterm.lua`). `dvt` generates this file from YAML-defined configs using Go templates, with optional theme color interpolation. The built-in preset library provides common starting points.
+WezTerm integration allows you to:
+
+- Generate `wezterm.lua` configuration files with automatic theme integration
+- Apply theme colors from your Neovim theme to WezTerm automatically
+- Choose from predefined presets for different workflows
+- Keep terminal and editor styling perfectly consistent
+- Use simple CLI commands for quick setup
+
+---
+
+## Quick Commands
+
+### dvt wezterm Commands
+
+| Command | Description |
+|---------|-------------|
+| `dvt wezterm list` | List all available presets |
+| `dvt wezterm show <preset>` | Display preset configuration details |
+| `dvt wezterm generate <preset>` | Generate config file (preview mode) |
+| `dvt wezterm use <preset>` | Set active WezTerm configuration (`~/.wezterm.lua`) |
+
+### Basic Usage
+
+```bash
+# List available presets
+dvt wezterm list
+
+# View preset details
+dvt wezterm show minimal
+dvt wezterm show tmux-style
+
+# Use configuration directly
+dvt wezterm use default    # Creates ~/.wezterm.lua
+dvt wezterm use minimal    # Overwrites with minimal preset
+
+# Generate to custom location
+dvt wezterm generate minimal --output ~/.config/wezterm/wezterm.lua
+
+# Preview configuration before using
+dvt wezterm generate default  # Shows config without saving
+```
+
+### Automatic Theme Integration
+
+**The key benefit:** Colors are automatically resolved from the theme library and current workspace theme settings.
+
+```bash
+# Set workspace theme
+dvm set theme coolnight-synthwave --workspace main
+
+# Use WezTerm config - automatically uses coolnight-synthwave colors
+dvt wezterm use minimal
+
+# Terminal now matches your Neovim theme perfectly!
+```
 
 ---
 
 ## Available Presets
 
-| Name | Description |
-|------|-------------|
-| `default` | Standard WezTerm configuration with sensible defaults |
-| `minimal` | Minimal configuration for low-overhead setups |
-| `tmux-style` | WezTerm with tmux-style keybindings (leader key, pane splits) |
-
----
-
-## Commands
-
-### List presets
-
-```bash
-dvt wezterm list
-```
-
-### Show a preset
-
-View the YAML definition for a preset:
-
-```bash
-dvt wezterm show minimal
-dvt wezterm show tmux-style
-```
-
-### Generate wezterm.lua
-
-Generate `wezterm.lua` from a preset:
-
-```bash
-dvt wezterm generate minimal
-```
-
-### Apply a preset
-
-Apply a preset and write `wezterm.lua` to the default output path:
-
-```bash
-dvt wezterm apply minimal
-```
-
-Specify a custom output path:
-
-```bash
-dvt wezterm apply minimal -o ~/.config/wezterm/wezterm.lua
-```
-
----
-
-## Automatic Theme Integration
-
-When the active DevOpsMaestro theme includes a WezTerm color scheme mapping, `dvt wezterm apply` automatically sets the `color_scheme` in the generated Lua to match the active theme.
-
----
-
-## Generated Config Structure
-
-A generated `wezterm.lua` follows this structure:
+### minimal
+Clean, distraction-free terminal with basic functionality:
 
 ```lua
-local wezterm = require("wezterm")
-local config = wezterm.config_builder()
+-- Minimal preset features:
+-- - Hide title bar and decorations
+-- - No tabs visible
+-- - Clean appearance with minimal padding
+-- - Theme colors applied automatically
+-- - Essential key bindings only
+```
 
--- Font
-config.font = wezterm.font("MesloLGS Nerd Font Mono")
-config.font_size = 14
+### tmux-style
+Terminal multiplexer-style configuration similar to tmux:
 
--- Window
-config.window_background_opacity = 0.95
+```lua
+-- tmux-style preset features:
+-- - Bottom status bar with session info
+-- - Tab bar visible with tmux-style navigation
+-- - tmux-like key bindings (Ctrl-b prefix)
+-- - Pane splitting and management
+-- - Theme colors applied automatically
+```
 
--- Color scheme
-config.color_scheme = "Catppuccin Mocha"
+### default
+Standard WezTerm configuration with DevOpsMaestro theme integration:
 
--- Tab bar
-config.enable_tab_bar = true
-config.tab_bar_at_bottom = false
+```lua
+-- Default preset features:
+-- - Standard WezTerm behavior
+-- - Tab bar visible at top
+-- - Window decorations enabled
+-- - Theme colors applied automatically
+-- - Full standard key binding set
+```
 
--- Leader key (tmux-style preset)
-config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
+---
 
--- Keybindings
-config.keys = {
-  { key = "|", mods = "LEADER", action = wezterm.action.SplitHorizontal { domain = "CurrentPaneDomain" } },
-  { key = "-", mods = "LEADER", action = wezterm.action.SplitVertical { domain = "CurrentPaneDomain" } },
+## Legacy Commands (Still Supported)
+
+For backward compatibility, the original `nvp wezterm` commands still work:
+
+```bash
+# Legacy commands (still functional)
+nvp wezterm generate --preset minimal
+nvp wezterm generate --theme coolnight-ocean --preset default
+```
+
+### Integration with Theme Hierarchy
+
+WezTerm generation automatically uses the resolved theme from the DevOpsMaestro hierarchy:
+
+```bash
+# Set theme at app level
+dvm set theme coolnight-synthwave --app my-project
+
+# Generate WezTerm config using the hierarchical theme
+cd ~/projects/my-project/workspace
+dvt wezterm use minimal
+
+# The generated config automatically uses coolnight-synthwave colors
+```
+
+### Custom Output Locations
+
+```bash
+# Save to custom location
+dvt wezterm use default --output ~/.config/wezterm/wezterm.lua
+
+# Preview before saving
+dvt wezterm generate minimal  # Shows config without saving
+dvt wezterm use minimal       # Saves to ~/.wezterm.lua
+```
+
+---
+
+## Generated Configuration Structure
+
+The generated `wezterm.lua` file includes:
+
+```lua
+local wezterm = require 'wezterm'
+local config = {}
+
+-- Theme colors (from your Neovim theme)
+local theme = {
+  background = "#1a1b26",
+  foreground = "#c0caf5",
+  cursor_bg = "#c0caf5",
+  cursor_border = "#c0caf5",
+  -- ... additional colors
+}
+
+-- Preset configuration
+-- (varies based on chosen preset)
+
+-- Apply theme colors
+config.colors = {
+  foreground = theme.foreground,
+  background = theme.background,
+  cursor_bg = theme.cursor_bg,
+  cursor_border = theme.cursor_border,
+  cursor_fg = theme.background,
+  -- ... full color palette
 }
 
 return config
@@ -105,127 +179,311 @@ return config
 
 ## Preset Details
 
-### default
+### Minimal Preset
 
-Standard WezTerm configuration:
+Perfect for focused development work:
 
-- Font: MesloLGS Nerd Font Mono, size 14
-- Window opacity: 1.0
-- Tab bar: enabled, top position
-- No leader key
-- Default WezTerm keybindings
+```lua
+-- Hide window decorations
+config.window_decorations = "RESIZE"
 
-### minimal
+-- No tab bar
+config.enable_tab_bar = false
 
-Low-overhead configuration:
+-- Simple appearance
+config.window_padding = {
+  left = 8,
+  right = 8,
+  top = 8,
+  bottom = 8,
+}
 
-- Font: MesloLGS Nerd Font Mono, size 13
-- Window opacity: 1.0
-- Tab bar: disabled
-- No leader key
-- Minimal keybindings
+-- Basic key bindings
+config.keys = {
+  {key="t", mods="CMD", action=wezterm.action{SpawnTab="CurrentPaneDomain"}},
+  {key="w", mods="CMD", action=wezterm.action{CloseCurrentTab={confirm=true}}},
+  -- ... minimal key set
+}
+```
 
-### tmux-style
+### tmux-style Preset
 
-WezTerm configured to behave like tmux:
+For users who prefer terminal multiplexer workflows:
 
-- Font: MesloLGS Nerd Font Mono, size 14
-- Window opacity: 0.95
-- Tab bar: enabled
-- Leader key: `Ctrl+a` (1000ms timeout)
-- Keybindings:
-  - `LEADER + |` -- Horizontal split
-  - `LEADER + -` -- Vertical split
-  - `LEADER + h/j/k/l` -- Navigate panes
-  - `LEADER + z` -- Zoom pane
+```lua
+-- Show tab bar at bottom
+config.tab_bar_at_bottom = true
+config.enable_tab_bar = true
+
+-- Status bar configuration
+config.status_update_interval = 1000
+
+-- tmux-like key bindings with Ctrl-b prefix
+local act = wezterm.action
+config.leader = {key="b", mods="CTRL", timeout_milliseconds=1000}
+config.keys = {
+  -- Pane splitting
+  {key="|", mods="LEADER", action=act{SplitHorizontal={domain="CurrentPaneDomain"}}},
+  {key="-", mods="LEADER", action=act{SplitVertical={domain="CurrentPaneDomain"}}},
+  
+  -- Pane navigation
+  {key="h", mods="LEADER", action=act{ActivatePaneDirection="Left"}},
+  {key="j", mods="LEADER", action=act{ActivatePaneDirection="Down"}},
+  {key="k", mods="LEADER", action=act{ActivatePaneDirection="Up"}},
+  {key="l", mods="LEADER", action=act{ActivatePaneDirection="Right"}},
+  
+  -- ... additional tmux-style bindings
+}
+```
+
+### Default Preset
+
+Standard WezTerm configuration with theme integration:
+
+```lua
+-- Standard window decorations
+config.window_decorations = "TITLE | RESIZE"
+
+-- Tab bar visible at top
+config.enable_tab_bar = true
+config.tab_bar_at_bottom = false
+
+-- Standard key bindings
+config.keys = {
+  {key="t", mods="CMD", action=wezterm.action{SpawnTab="CurrentPaneDomain"}},
+  {key="w", mods="CMD", action=wezterm.action{CloseCurrentTab={confirm=true}}},
+  {key="n", mods="CMD", action=wezterm.action{SpawnWindow}},
+  -- ... full standard key set
+}
+```
 
 ---
 
 ## Theme Color Mapping
 
-When using theme integration, the following theme variables map to WezTerm settings:
+DevOpsMaestro maps Neovim theme colors to appropriate WezTerm colors:
 
-| Theme Variable | WezTerm Setting |
-|----------------|-----------------|
-| `${theme.bg}` | `background` in color overrides |
-| `${theme.fg}` | `foreground` in color overrides |
-| `${theme.primary}` | `ansi[4]` (blue) |
-| `${theme.accent}` | `ansi[5]` (magenta) |
-| `${theme.success}` | `ansi[2]` (green) |
-| `${theme.error}` | `ansi[1]` (red) |
-| `${theme.warning}` | `ansi[3]` (yellow) |
+| Neovim Color | WezTerm Color | Usage |
+|--------------|---------------|--------|
+| `bg` | `background` | Terminal background |
+| `fg` | `foreground` | Default text color |
+| `accent` | `cursor_bg`, `cursor_border` | Cursor colors |
+| `comment` | `ansi[8]` | Bright black |
+| `keyword` | `ansi[5]` | Magenta |
+| `string` | `ansi[2]` | Green |
+| `function` | `ansi[4]` | Blue |
+| `variable` | `foreground` | Default text |
+| `type` | `ansi[6]` | Cyan |
+| `constant` | `ansi[3]` | Yellow |
+| `error` | `ansi[1]` | Red |
+| `warning` | `ansi[3]` | Yellow |
+| `info` | `ansi[4]` | Blue |
+| `selection` | `selection_bg` | Text selection |
+
+---
+
+## Automatic Theme Updates
+
+WezTerm configuration automatically updates when you change themes:
+
+```bash
+# Change theme in DevOpsMaestro
+dvm set theme coolnight-matrix --app
+
+# Regenerate WezTerm config with new theme
+dvt wezterm use minimal
+
+# WezTerm will automatically reload the configuration
+```
+
+### Batch Updates
+
+```bash
+# Update all configurations at once after theme change
+nvp config generate       # Update Neovim
+nvp theme generate        # Update theme files
+dvt wezterm use minimal # Update terminal
+
+# Everything stays in sync automatically
+```
 
 ---
 
 ## Custom Configuration
 
-To create a custom WezTerm config beyond the presets, apply a YAML definition:
+### Extending Generated Config
 
-```yaml
-apiVersion: devopsmaestro.dev/v1alpha1
-kind: WeztermConfig
-metadata:
-  name: my-wezterm
-  description: My custom WezTerm configuration
-  category: developer
-spec:
-  font:
-    family: "JetBrains Mono Nerd Font"
-    size: 13
-  window:
-    opacity: 0.92
-  colors:
-    scheme: "Tokyo Night"
-  leader:
-    key: "b"
-    mods: "CTRL"
-    timeout: 1000
-  keybindings:
-    - key: "|"
-      mods: "LEADER"
-      action: "wezterm.action.SplitHorizontal{domain='CurrentPaneDomain'}"
-    - key: "-"
-      mods: "LEADER"
-      action: "wezterm.action.SplitVertical{domain='CurrentPaneDomain'}"
-  tabBar:
-    enabled: true
-    position: bottom
+You can extend the generated configuration:
+
+```lua
+-- ~/.wezterm.lua (generated with dvt wezterm use)
+local wezterm = require 'wezterm'
+local config = {}
+
+-- Include generated theme and preset config
+-- (generated content will be here)
+
+-- Add your custom settings
+config.font_size = 14.0
+config.font = wezterm.font('JetBrains Mono', {weight='Medium'})
+
+-- Custom key bindings
+table.insert(config.keys, {
+  key='r',
+  mods='CMD|SHIFT',
+  action=wezterm.action.ReloadConfiguration,
+})
+
+return config
 ```
 
-Apply via the emulator command:
+### Theme Overrides
+
+Override specific theme colors:
 
 ```bash
-dvt emulator apply -f my-wezterm.yaml
-dvt emulator install my-wezterm
+# Generate base config
+dvt wezterm use minimal
+
+# Then manually edit ~/.wezterm.lua to override colors
 ```
 
-!!! note "WezTerm YAML uses a different apiVersion"
-    WezTerm configs use `apiVersion: devopsmaestro.dev/v1alpha1` with `kind: WeztermConfig`, distinct from other `devopsmaestro.io/v1` resources.
+```lua
+-- In the generated file, modify the theme table:
+local theme = {
+  background = "#1a1b26",  -- Keep original
+  foreground = "#c0caf5",  -- Keep original
+  cursor_bg = "#ff0000",   -- Override to red
+  -- ... other colors
+}
+```
+
+---
+
+## Usage Workflows
+
+### Complete Development Setup
+
+```bash
+# 1. Initialize and create workspace
+dvm admin init
+cd ~/projects/user-service
+dvm create app user-service --from-cwd
+dvm create workspace main
+
+# 2. Set theme at app level
+dvm set theme coolnight-ocean --app user-service
+
+# 3. Generate all configurations with consistent theme
+nvp config generate      # Neovim config
+nvp theme generate       # Theme files
+dvt wezterm use minimal # Terminal config
+
+# 4. Generate shell profile
+dvt profile generate myprofile --output ~/.config
+
+# Now terminal and editor use perfectly matching colors
+```
+
+### Team Consistency
+
+```bash
+# 1. Set team theme at domain level
+dvm create ecosystem company
+dvm create domain platform-team
+dvm set theme company-theme --domain platform-team
+
+# 2. Generate team WezTerm config
+dvt wezterm generate tmux-style --output ~/team-config/wezterm.lua
+
+# 3. Share the generated config file
+git add ~/team-config/wezterm.lua
+git commit -m "Add team WezTerm config with company theme"
+
+# Team members can apply the config
+cp ~/team-config/wezterm.lua ~/.wezterm.lua
+```
+
+### Quick Theme Changes
+
+```bash
+# Change theme across your entire setup
+dvm set theme coolnight-matrix --app
+
+# Update all configurations
+nvp theme generate              # Update Neovim theme
+dvt wezterm use minimal       # Update terminal theme
+
+# Everything now uses the new theme consistently
+```
 
 ---
 
 ## Troubleshooting
 
-### wezterm.lua not picked up
+### WezTerm Not Loading Configuration
 
-WezTerm looks for its config at `~/.config/wezterm/wezterm.lua` or `~/.wezterm.lua`. Verify the output path:
+1. **Check file location:**
+   ```bash
+   ls -la ~/.wezterm.lua
+   ```
+
+2. **Verify syntax:**
+   ```bash
+   # Test the configuration
+   wezterm start --config ~/.wezterm.lua
+   ```
+
+3. **Check WezTerm logs:**
+   ```bash
+   wezterm show-config
+   ```
+
+### Colors Not Matching Neovim
+
+1. **Verify theme is active:**
+   ```bash
+   dvm get context --show-theme
+   ```
+
+2. **Regenerate with current theme:**
+   ```bash
+dvt wezterm use minimal
+   ```
+
+3. **Check available presets:**
+   ```bash
+   dvt wezterm list
+   dvt wezterm show minimal
+   ```
+
+### Command Not Found: dvt
+
+If `dvt` command is not available, you may be using an older version:
 
 ```bash
-dvt wezterm apply minimal -o ~/.config/wezterm/wezterm.lua
+# Check version
+dvm version
+
+# Update to latest
+brew upgrade devopsmaestro
+
+# Use legacy commands as fallback
+nvp wezterm generate --preset minimal --output ~/.wezterm.lua
 ```
-
-### Font not found
-
-If the specified font family is not installed, WezTerm falls back to its built-in font. Install a Nerd Font from [nerdfonts.com](https://www.nerdfonts.com/) for full symbol support.
-
-### Color scheme not found
-
-WezTerm's built-in color scheme names are case-sensitive. Verify the scheme name matches exactly (e.g., `"Catppuccin Mocha"` not `"catppuccin-mocha"`).
 
 ---
 
-## Related
+## Supported WezTerm Versions
 
-- [Terminal Emulators](emulators.md) - General emulator management
-- [Terminal Packages](packages.md) - Bundle WezTerm config with prompts and plugins
-- [TerminalPackage YAML Reference](../reference/terminal-package.md)
+- **Minimum:** WezTerm 20230712-072601-f4abf8fd
+- **Recommended:** Latest stable release
+- **Features used:** Color schemes, key bindings, tab configuration
+
+---
+
+## Next Steps
+
+- [Themes Documentation](https://rmkohlman.github.io/MaestroNvim/themes/overview/) - Available themes and variants
+- [Theme Hierarchy](https://rmkohlman.github.io/MaestroTheme/configuration/theme-hierarchy/) - Setting themes at different levels
+- [nvp Commands](https://rmkohlman.github.io/MaestroNvim/commands/) - Full nvp command reference
